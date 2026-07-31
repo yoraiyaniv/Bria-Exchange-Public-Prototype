@@ -1,0 +1,249 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  /* Point font utilities at the Next.js font variables set in layout.tsx */
+  --font-sans:    var(--font-sora);
+  --font-mono:    var(--font-sora);
+  --font-display: var(--font-space-grotesk);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/*
+ * Bria Exchange — design tokens aligned to Bria Visual Brand Guidelines (Jan 2026)
+ *
+ * Palette:
+ *   Background:   #0A0A0A
+ *   Surface:      #1A1A1A   cards / sidebar
+ *   Surface2:     #242424   inputs / secondary fills
+ *   Border:       #2A2A2A
+ *   Text:         #FFFFFF
+ *   Muted text:   #9E9E9E
+ *   Purple 1:     #7D29F2   primary CTA / active states
+ *   Purple 2:     #9D5FF5   hover accent
+ *   Purple 3:     #DDCCF4   badges / tags (muted tint)
+ *   Yellow:       #F2BC1B   secondary CTAs / highlights
+ *   Green:        #5BC29E   success
+ *   Magenta:      #D70067   errors only
+ */
+:root {
+  /* ── Surfaces ── */
+  --background:             #0A0A0A;
+  --foreground:             #FFFFFF;
+  --card:                   #1A1A1A;
+  --card-foreground:        #FFFFFF;
+  --popover:                #1A1A1A;
+  --popover-foreground:     #FFFFFF;
+
+  /* ── Brand / primary = Bria Purple ── */
+  --primary:                #7D29F2;
+  --primary-foreground:     #FFFFFF;
+
+  /* ── Secondary / muted fills ── */
+  --secondary:              #1A1A1A;
+  --secondary-foreground:   #FFFFFF;
+  --muted:                  #242424;
+  --muted-foreground:       #9E9E9E;
+
+  /* ── Accent = hover purple ── */
+  --accent:                 #9D5FF5;
+  --accent-foreground:      #FFFFFF;
+
+  /* ── Destructive = magenta ── */
+  --destructive:            #D70067;
+
+  /* ── Borders / inputs ── */
+  --border:                 #2A2A2A;
+  --input:                  #242424;
+  --ring:                   #7D29F2;
+
+  /* ── Chart colours ── */
+  --chart-1:                #5BC29E;
+  --chart-2:                #F2BC1B;
+  --chart-3:                #D70067;
+  --chart-4:                #7D29F2;
+  --chart-5:                #9D5FF5;
+
+  /* ── Radius (12px base) ── */
+  --radius: 0.75rem;
+
+  /* ── Sidebar ── */
+  --sidebar:                    #1A1A1A;
+  --sidebar-foreground:         #FFFFFF;
+  --sidebar-primary:            #7D29F2;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent:             #242424;
+  --sidebar-accent-foreground:  #FFFFFF;
+  --sidebar-border:             #2A2A2A;
+  --sidebar-ring:               #7D29F2;
+
+  /* ── Bria semantic tokens (used directly in components) ── */
+  --bria-surface:   #1A1A1A;
+  --bria-surface2:  #242424;
+  --bria-border:    #2A2A2A;
+  --bria-border2:   #333333;
+  /* purple replaces blue as primary brand accent */
+  --bria-blue:      #7D29F2;
+  --bria-blue-dim:  rgba(125, 41, 242, 0.12);
+  --bria-purple:    #7D29F2;
+  --bria-purple-dim: rgba(125, 41, 242, 0.12);
+  --bria-green:     #5BC29E;
+  --bria-green-dim: rgba(91, 194, 158, 0.12);
+  --bria-amber:     #F2BC1B;
+  --bria-amber-dim: rgba(242, 188, 27, 0.12);
+  --bria-red:       #D70067;
+  --bria-red-dim:   rgba(215, 0, 103, 0.10);
+}
+
+/* We're always dark — mirror identical values */
+.dark {
+  --background:             #0A0A0A;
+  --foreground:             #FFFFFF;
+  --card:                   #1A1A1A;
+  --card-foreground:        #FFFFFF;
+  --popover:                #1A1A1A;
+  --popover-foreground:     #FFFFFF;
+  --primary:                #7D29F2;
+  --primary-foreground:     #FFFFFF;
+  --secondary:              #1A1A1A;
+  --secondary-foreground:   #FFFFFF;
+  --muted:                  #242424;
+  --muted-foreground:       #9E9E9E;
+  --accent:                 #9D5FF5;
+  --accent-foreground:      #FFFFFF;
+  --destructive:            #D70067;
+  --border:                 #2A2A2A;
+  --input:                  #242424;
+  --ring:                   #7D29F2;
+  --chart-1:                #5BC29E;
+  --chart-2:                #F2BC1B;
+  --chart-3:                #D70067;
+  --chart-4:                #7D29F2;
+  --chart-5:                #9D5FF5;
+  --sidebar:                    #1A1A1A;
+  --sidebar-foreground:         #FFFFFF;
+  --sidebar-primary:            #7D29F2;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent:             #242424;
+  --sidebar-accent-foreground:  #FFFFFF;
+  --sidebar-border:             #2A2A2A;
+  --sidebar-ring:               #7D29F2;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    box-sizing: border-box;
+  }
+  html {
+    font-family: var(--font-sora, 'Sora', sans-serif);
+    color-scheme: dark;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sora, 'Sora', sans-serif);
+    font-size: 14px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3 {
+    font-family: var(--font-space-grotesk, 'Space Grotesk', sans-serif);
+    font-weight: 700;
+  }
+  h4, h5, h6 {
+    font-family: var(--font-sora, 'Sora', sans-serif);
+    font-weight: 600;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #333333; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #9E9E9E; }
+}
+
+/* ── Demo animation ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Card / panel title (caption uppercase, no trailing rule) ── */
+.card-label {
+  font-family: var(--font-sora, 'Sora', sans-serif);
+  font-size: 10px;
+  color: #9E9E9E;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 400;
+}
+
+/* ── Section label (caption uppercase with trailing rule) ── */
+.section-label {
+  font-family: var(--font-sora, 'Sora', sans-serif);
+  font-size: 10px;
+  color: #9E9E9E;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #2A2A2A;
+}
+
+/* ── Decision badge colours ── */
+.decision-pass  { color: #5BC29E; }
+.decision-flag  { color: #F2BC1B; }
+.decision-block { color: #D70067; }
+
+/* ── Claim status colours ── */
+.status-corroborated { color: #5BC29E; }
+.status-contradicted { color: #D70067; }
+.status-unsupported  { color: #F2BC1B; }
+.status-out_of_scope { color: #9E9E9E; }

@@ -1,0 +1,169 @@
+services:
+
+  # ── PostgreSQL ──────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+      - ./mcp_server/migrations/mcp_db.sql:/migrations/mcp_db.sql
+      - ./mcp_server/migrations/dashboard_db.sql:/migrations/dashboard_db.sql
+      - ./mcp_server/migrations/exchange_public.sql:/migrations/exchange_public.sql
+    ports:
+      - "5432:5432"
+    networks:
+      bria:
+        ipv4_address: 172.18.1.2
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── Verification REST API ───────────────────────────────────────────────────
+  api:
+    build:
+      context: ./mcp_server
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    command: uvicorn api:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    env_file: .env
+    environment:
+      MCP_DATABASE_URL: postgresql://postgres:postgres@postgres:5432/bria_mcp
+    networks:
+      bria:
+        ipv4_address: 172.18.1.4
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ── Dashboard API ───────────────────────────────────────────────────────────
+  dashboard-api:
+    build:
+      context: ./mcp_server
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    command: uvicorn dashboard_api:app --host 0.0.0.0 --port 8001
+    ports:
+      - "8001:8001"
+    env_file: .env
+    environment:
+      MCP_DATABASE_URL: postgresql://postgres:postgres@postgres:5432/bria_mcp
+      DASHBOARD_DATABASE_URL: postgresql://postgres:postgres@postgres:5432/bria_dashboard
+      VERIFY_API_URL: http://api:8000
+    networks:
+      bria:
+        ipv4_address: 172.18.1.5
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8001/health')\" || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  # ── MCP Server ──────────────────────────────────────────────────────────────
+  mcp:
+    build:
+      context: ./mcp_server
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    command: uvicorn mcp_server:app --host 0.0.0.0 --port 8002
+    ports:
+      - "8002:8002"
+    env_file: .env
+    environment:
+      MCP_DATABASE_URL: postgresql://postgres:postgres@postgres:5432/bria_mcp
+      DASHBOARD_DATABASE_URL: postgresql://postgres:postgres@postgres:5432/bria_dashboard
+    networks:
+      bria:
+        ipv4_address: 172.18.1.3
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ── Next.js Frontend ────────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      network: host
+      args:
+        # Browser-side URL — must be reachable from the user's browser
+        NEXT_PUBLIC_API_URL: https://api.briaexchange.com
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: https://api.briaexchange.com
+      API_URL: http://dashboard-api:8001
+      AUTH_SECRET: ${JWT_SECRET}
+      NEXTAUTH_URL: https://platform.briaexchange.com
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+    ports:
+      - "127.0.0.1:3000:3000"
+    networks:
+      bria:
+        ipv4_address: 172.18.1.6
+    depends_on:
+      dashboard-api:
+        condition: service_healthy
+
+  # ── Exchange Frontend (verify.briaexchange.com) ─────────────────────────────
+  exchange-frontend:
+    build:
+      context: ./exchange-frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: https://api.briaexchange.com
+      NEXT_PUBLIC_APP_URL: https://verify.briaexchange.com
+      API_URL: http://dashboard-api:8001
+      AUTH_SECRET: ${JWT_SECRET}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-https://verify.briaexchange.com}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+    networks:
+      bria:
+        ipv4_address: 172.18.1.7
+    depends_on:
+      dashboard-api:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ── Caddy (HTTPS reverse proxy) ─────────────────────────────────────────────
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - ./docker/Caddyfile:/etc/caddy/Caddyfile
+      - ./docker/landing.html:/srv/landing.html:ro
+      - ./docker/screens:/srv/screens:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - frontend
+      - exchange-frontend
+      - dashboard-api
+      - mcp
+
+networks:
+  bria:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.18.1.0/24
+
+volumes:
+  postgres_data:
+  caddy_data:
+  caddy_config:

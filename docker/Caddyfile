@@ -1,0 +1,73 @@
+briaexchange.com {
+    # Landing page at exact root path
+    @root path /
+    handle @root {
+        root * /srv
+        rewrite * /landing.html
+        file_server
+    }
+
+    # Serve screenshot images for feature rows
+    handle_path /screens/* {
+        root * /srv/screens
+        file_server
+    }
+
+    # Verify API proxy for landing page playground
+    @verifyapi path /api/public/verify
+    handle @verifyapi {
+        reverse_proxy localhost:8001 {
+            transport http {
+                response_header_timeout 150s
+            }
+        }
+    }
+
+    # Redirect old dashboard paths to platform subdomain
+    @oldpaths path_regexp oldpath ^/(dashboard|review|audit|cost|policy|agents|sources|settings|login|signup)(.*)$
+    handle @oldpaths {
+        redir https://platform.briaexchange.com{http.request.uri} permanent
+    }
+
+    # Static assets and API for landing page
+    reverse_proxy localhost:3000
+}
+
+platform.briaexchange.com {
+    reverse_proxy localhost:3000
+}
+
+api.briaexchange.com {
+    log
+    reverse_proxy localhost:8001
+}
+
+mcp.briaexchange.com {
+    reverse_proxy localhost:8002
+}
+
+verify.briaexchange.com {
+    # NextAuth routes → frontend
+    reverse_proxy /api/auth/* localhost:3001
+    # Signup proxy route → frontend
+    reverse_proxy /api/signup localhost:3001
+
+    # Exchange verify (SSE stream)
+    reverse_proxy /api/public/verify/stream localhost:8001 {
+        transport http {
+            response_header_timeout 300s
+        }
+        flush_interval -1
+    }
+    # Exchange verify (standard)
+    reverse_proxy /api/public/verify localhost:8001 {
+        transport http {
+            response_header_timeout 150s
+        }
+    }
+    # All other API routes → dashboard-api
+    reverse_proxy /api/* localhost:8001
+
+    # Everything else → frontend
+    reverse_proxy localhost:3001
+}
